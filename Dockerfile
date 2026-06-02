@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libwebp-dev \
     libzip-dev \
+    libicu-dev \
     unzip \
     git \
     poppler-utils \
@@ -13,7 +14,8 @@ RUN apt-get update && apt-get install -y \
 
 # Configure and install PHP extensions
 RUN docker-php-ext-configure gd --with-jpeg --with-webp \
-    && docker-php-ext-install gd zip pdo_mysql bcmath opcache
+    && docker-php-ext-configure intl \
+    && docker-php-ext-install gd zip pdo_mysql bcmath opcache intl exif
 
 # Enable Apache rewrite module for Laravel routing
 RUN a2enmod rewrite
@@ -31,6 +33,9 @@ WORKDIR /var/www/html
 
 # Copy project files
 COPY . /var/www/html
+
+# Set git safe directory to avoid dubious ownership errors
+RUN git config --global --add safe.directory /var/www/html
 
 # Run composer install to build dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
