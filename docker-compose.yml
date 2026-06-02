@@ -3,7 +3,7 @@ services:
         build:
             context: .
             dockerfile: Dockerfile
-        image: product-catalog-app:v2
+        image: product-catalog-app:v3
         restart: always
         ports:
             - '${APP_PORT:-8083}:80'
