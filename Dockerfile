@@ -20,6 +20,11 @@ RUN docker-php-ext-configure gd --with-jpeg --with-webp \
 # Enable Apache rewrite module for Laravel routing
 RUN a2enmod rewrite
 
+# Configure custom PHP settings for file uploads (max 50MB)
+RUN echo "upload_max_filesize = 50M\n\
+post_max_size = 50M\n\
+memory_limit = 256M" > /usr/local/etc/php/conf.d/uploads.ini
+
 # Create custom Apache VirtualHost with built-in Laravel URL rewriting
 # This eliminates dependency on .htaccess files
 RUN echo '<VirtualHost *:80>\n\
