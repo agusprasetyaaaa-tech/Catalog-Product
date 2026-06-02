@@ -20,11 +20,18 @@ RUN docker-php-ext-configure gd --with-jpeg --with-webp \
 # Enable Apache rewrite module for Laravel routing
 RUN a2enmod rewrite
 
-# Configure Apache Document Root to Laravel's public directory and allow .htaccess overrides
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
-RUN sed -ri -e 's!AllowOverride[[:space:]]+None!AllowOverride All!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+# Create custom Apache VirtualHost with built-in Laravel URL rewriting
+# This eliminates dependency on .htaccess files
+RUN echo '<VirtualHost *:80>\n\
+    DocumentRoot /var/www/html/public\n\
+    <Directory /var/www/html/public>\n\
+        AllowOverride All\n\
+        Require all granted\n\
+        FallbackResource /index.php\n\
+    </Directory>\n\
+    ErrorLog ${APACHE_LOG_DIR}/error.log\n\
+    CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
+</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
